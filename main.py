@@ -96,7 +96,7 @@ def resize():
 
 
 
-def split_data(transform, train_images_path):
+def split_data(transform, train_images_path, df):
     #split data
 
     # Split
@@ -159,12 +159,31 @@ def train_loop(model, optimizer, criterion, train_loader, device):
         epoch_loss = running_loss / total
         epoch_acc = correct / total
         print(f"Epoch [{epoch+1}/{num_epochs}] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}")
+    return model
+
+def save_model(model):
+    torch.save(model.state_dict(), "resnet18.pth")
+
+def load_model():
+    # Make sure to define the model architecture the same way
+    model = AgeDataset()  # Replace MyCNN with your class
+    model.load_state_dict(torch.load("resnet18.pth"))
+    model.eval()  # Set to evaluation mode
+    return model
+
 
 def main():
     df, train_images_path = load_data()
     #print_images(df, train_images_path)
     map_labels(df)
     transform = resize()
-    device, train_loader = split_data(transform, train_images_path)
-    model, optimizer, critereon = load_resnet18(device)
-    train_loop(model, optimizer, critereon, train_loader, device)
+    device, train_loader = split_data(transform, train_images_path, df)
+    if not os.path.exists("resnet18.pth"):
+        model, optimizer, critereon = load_resnet18(device)
+        trained_model = train_loop(model, optimizer, critereon, train_loader, device)
+        save_model(model)
+    else:
+        trained_model = load_model()
+
+
+main()
