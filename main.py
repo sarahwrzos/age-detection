@@ -1,8 +1,20 @@
+#imports
+#data
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-#test comment
+import os
+from PIL import Image
+from torch.utils.data import Dataset
+from torchvision import transforms
+from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
+#model
+import torch
+import timm
+import torch.nn as nn
+import torch.optim as optim
 
 # Base folder of your project (the folder where your script is)
 project_root = Path(__file__).resolve().parent
@@ -49,10 +61,6 @@ df['Class'] = df['Class'].map(class_mapping)
 df.head()
 
 
-import os
-from PIL import Image
-from torch.utils.data import Dataset
-
 class AgeDataset(Dataset):
     def __init__(self, dataframe, img_dir, transform=None):
         self.dataframe = dataframe
@@ -74,8 +82,6 @@ class AgeDataset(Dataset):
         return image, age
     
 
-from torchvision import transforms
-
 transform = transforms.Compose([
     transforms.Resize((64, 64)),        # Resize to ViT input size
     transforms.ToTensor(),                # Convert PIL image to tensor
@@ -87,8 +93,6 @@ transform = transforms.Compose([
 
 
 #split data
-from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
 
 # Split
 train_df_split, val_df_split = train_test_split(df, test_size=0.2, random_state=42)
@@ -103,15 +107,11 @@ val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)#was 32
 
 
 
-import torch
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using device:", device)
 
 
 
-import timm
-import torch.nn as nn
 
 # Load pretrained ResNet18
 model = timm.create_model('resnet18', pretrained=True)
@@ -122,7 +122,6 @@ model.fc = nn.Linear(model.fc.in_features, 3)
 # Move model to device
 model = model.to(device)
 
-import torch.optim as optim
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=1e-4)
