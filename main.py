@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+#test comment
 
 # Base folder of your project (the folder where your script is)
 project_root = Path(__file__).resolve().parent
