@@ -116,7 +116,7 @@ def split_data(transform, train_images_path, df):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using device:", device)
-    return device, train_loader, train_df_split
+    return device, train_loader, val_loader, train_df_split, val_df_split
 
 
 
@@ -136,7 +136,7 @@ def load_resnet18(device):
 
     return model, optimizer, criterion
 
-def train_loop(model, optimizer, criterion, train_loader, device):
+def train_loop(model, optimizer, criterion, train_loader, val_loader, device):
     num_epochs = 5
 
     print("starting loop")
@@ -153,15 +153,27 @@ def train_loop(model, optimizer, criterion, train_loader, device):
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item() * images.size(0)
-            _, predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            batch_size = labels.size(0)
+            running_loss += loss.item() * batch_size
 
-        epoch_loss = running_loss / total
-        epoch_acc = correct / total
-        print(f"Epoch [{epoch+1}/{num_epochs}] Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}")
+            _, predicted = outputs.max(1)
+            correct += (predicted == labels).sum().item()
+            total += batch_size
+
+        train_loss = running_loss / total
+        train_acc = correct / total
+
+        # ---- VALIDATION -----
+        val_acc, val_loss = validate(model, val_loader, criterion, device)
+
+        print(f"Epoch {epoch+1}/{num_epochs} | "
+              f"Train Loss: {train_loss:.4f} | "
+              f"Train Acc: {train_acc*100:.2f}% | "
+              f"Val Loss: {val_loss:.4f} | "
+              f"Val Acc: {val_acc*100:.2f}%")
+
     return model
+
 
 def save_model(model):
     torch.save(model.state_dict(), "resnet18.pth")
@@ -175,19 +187,50 @@ def load_model(num_classes, model_path="resnet18.pth", device="cpu"):
     model.eval()
     return model
 
+def validate(model, val_loader, criterion, device):
+    model.eval()
+    total = 0
+    correct = 0
+    val_loss = 0
+
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+
+            # accuracy
+            _, preds = torch.max(outputs, 1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+
+    accuracy = correct / total
+    avg_loss = val_loss / len(val_loader)
+
+    return accuracy, avg_loss
+
+
 def main():
     df, train_images_path = load_data()
     #print_images(df, train_images_path)
     map_labels(df)
     transform = resize()
-    device, train_loader, train_df_split = split_data(transform, train_images_path, df)
+    device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
     if not os.path.exists("resnet18.pth"):
-        model, optimizer, critereon = load_resnet18(device)
-        trained_model = train_loop(model, optimizer, critereon, train_loader, device)
+        model, optimizer, criterion = load_resnet18(device)
+        trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device)
         save_model(trained_model)
     else:
         trained_model = load_model(3)
         print("loaded model")
+
+        # evaluate loaded model
+        criterion = nn.CrossEntropyLoss()
+        val_acc, val_loss = validate(trained_model, val_loader, criterion, device)
+        print(f"Loaded Model Validation Acc: {val_acc*100:.2f}%")
 
 
 main()
