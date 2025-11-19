@@ -84,6 +84,8 @@ class AgeDataset(Dataset):
             image = self.transform(image)
 
         return image, age
+
+
     
 def resize():
     transform = transforms.Compose([
@@ -107,14 +109,14 @@ def split_data(transform, train_images_path, df):
     val_dataset = AgeDataset(val_df_split, train_images_path, transform=transform)
 
     # Create DataLoaders
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)#was 32
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)#was 32
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)#was 32
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)#was 32
 
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using device:", device)
-    return device, train_loader
+    return device, train_loader, train_df_split
 
 
 
@@ -164,26 +166,28 @@ def train_loop(model, optimizer, criterion, train_loader, device):
 def save_model(model):
     torch.save(model.state_dict(), "resnet18.pth")
 
-def load_model():
-    # Make sure to define the model architecture the same way
-    model = AgeDataset()  # Replace MyCNN with your class
-    model.load_state_dict(torch.load("resnet18.pth"))
-    model.eval()  # Set to evaluation mode
-    return model
+def load_model(num_classes, model_path="resnet18.pth", device="cpu"):
+    model = timm.create_model('resnet18', pretrained=False)
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
 
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
 
 def main():
     df, train_images_path = load_data()
     #print_images(df, train_images_path)
     map_labels(df)
     transform = resize()
-    device, train_loader = split_data(transform, train_images_path, df)
+    device, train_loader, train_df_split = split_data(transform, train_images_path, df)
     if not os.path.exists("resnet18.pth"):
         model, optimizer, critereon = load_resnet18(device)
         trained_model = train_loop(model, optimizer, critereon, train_loader, device)
-        save_model(model)
+        save_model(trained_model)
     else:
-        trained_model = load_model()
+        trained_model = load_model(3)
+        print("loaded model")
 
 
 main()
