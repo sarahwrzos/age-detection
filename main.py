@@ -15,6 +15,8 @@ import torch
 import timm
 import torch.nn as nn
 import torch.optim as optim
+#confusion matrix
+from sklearn.metrics import confusion_matrix
 
 def load_data():
     # Base folder of your project (the folder where your script is)
@@ -212,6 +214,25 @@ def validate(model, val_loader, criterion, device):
 
     return accuracy, avg_loss
 
+def print_confusion_matrix(model, val_loader, device):
+    model.eval()
+    all_preds = []
+    all_labels = []
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            _, preds = torch.max(outputs, 1)
+
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+    cm = confusion_matrix(all_labels, all_preds)
+    confusion_matrix_df = pd.DataFrame(cm, index=['Young', 'Middle', 'Old'], columns=['Young', 'Middle', 'Old'])
+    print("Confusion Matrix (True on Rows, Predicted on Columns):")
+    print(confusion_matrix_df)
+    
 
 def main():
     df, train_images_path = load_data()
@@ -231,6 +252,9 @@ def main():
         criterion = nn.CrossEntropyLoss()
         val_acc, val_loss = validate(trained_model, val_loader, criterion, device)
         print(f"Loaded Model Validation Acc: {val_acc*100:.2f}%")
+
+        #confusion matrix
+        print_confusion_matrix(trained_model, val_loader, device)
 
 
 main()
