@@ -138,6 +138,24 @@ def load_resnet18(device):
 
     return model, optimizer, criterion
 
+def load_resnet50(device):
+    # Load pretrained ResNet18
+    model = timm.create_model('resnet50', pretrained=True)
+
+    # Replace the final classification layer (3 classes)
+    model.fc = nn.Linear(model.fc.in_features, 3)
+
+    # Move model to device
+    model = model.to(device)
+
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
+
+    return model, optimizer, criterion
+
+
+#retrains all layers. nothing is explicitly frozen
 def train_loop(model, optimizer, criterion, train_loader, val_loader, device):
     num_epochs = 5
 
@@ -177,8 +195,8 @@ def train_loop(model, optimizer, criterion, train_loader, val_loader, device):
     return model
 
 
-def save_model(model):
-    torch.save(model.state_dict(), "resnet18.pth")
+def save_model(model, name):
+    torch.save(model.state_dict(), name)
 
 def load_model(num_classes, model_path="resnet18.pth", device="cpu"):
     model = timm.create_model('resnet18', pretrained=False)
@@ -240,10 +258,10 @@ def main():
     map_labels(df)
     transform = resize()
     device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
-    if not os.path.exists("resnet18.pth"):
-        model, optimizer, criterion = load_resnet18(device)
+    if not os.path.exists("resnet50.pth"):
+        model, optimizer, criterion = load_resnet50(device)
         trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device)
-        save_model(trained_model)
+        save_model(trained_model, "resnet50.pth")
     else:
         trained_model = load_model(3)
         print("loaded model")
@@ -257,4 +275,5 @@ def main():
         print_confusion_matrix(trained_model, val_loader, device)
 
 
-main()
+if __name__ == "__main__":
+    main()
