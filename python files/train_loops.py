@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 #retrains all layers. nothing is explicitly frozen
-def train_loop(model, optimizer, criterion, train_loader, val_loader, device):
-    num_epochs = 50
+def train_loop(model, optimizer, criterion, train_loader, val_loader, device, epochs):
+    num_epochs = epochs
 
     print("starting training loop")
     for epoch in range(num_epochs):
