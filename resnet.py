@@ -157,7 +157,7 @@ def load_resnet50(device):
 
 #retrains all layers. nothing is explicitly frozen
 def train_loop(model, optimizer, criterion, train_loader, val_loader, device):
-    num_epochs = 5
+    num_epochs = 50
 
     print("starting loop")
     for epoch in range(num_epochs):
@@ -258,10 +258,10 @@ def main():
     map_labels(df)
     transform = resize()
     device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
-    if not os.path.exists("resnet50.pth"):
+    if not os.path.exists("resnet50_50e.pth"):
         model, optimizer, criterion = load_resnet50(device)
         trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device)
-        save_model(trained_model, "resnet50.pth")
+        save_model(trained_model, "resnet50_50e.pth")
     else:
         trained_model = load_model(3)
         print("loaded model")
