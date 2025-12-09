@@ -20,7 +20,8 @@ def main():
     #transform = resizeVit()
     device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
     if not model_pth.exists():
-        model, optimizer, criterion = load_pretrained_model(device, model_name)
+        model, optimizer, criterion = load_pretrained_cnn_model(device, model_name)
+        #model, optimizer, criterion = load_pretrained_vit_model(device)
         trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device, 50)
         save_model(trained_model, model_pth)
     else:
