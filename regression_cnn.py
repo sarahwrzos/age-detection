@@ -123,6 +123,20 @@ def compute_mae(model, loader, device):
             count += ages.size(0)
     return total_abs_error / count
 
+# Compute MSE (Mean Squared Error)
+def compute_mse(model, loader, device):
+    model.eval()
+    total_sq_error = 0
+    count = 0
+    with torch.no_grad():
+        for images, ages in loader:
+            images, ages = images.to(device), ages.to(device)
+            preds = model(images).squeeze()
+            sq_err = (preds - ages.squeeze()) ** 2
+            total_sq_error += sq_err.sum().item()
+            count += ages.size(0)
+    return total_sq_error / count
+
 # Binned Confusion Matrix
 def age_to_bin(age):
     return min(int(age) // 10, 11)
@@ -230,7 +244,9 @@ def main():
 
     # Final validation
     val_mae = compute_mae(model, val_loader, device)
+    val_mse = compute_mse(model, val_loader, device)
     print(f"Final Validation MAE: {val_mae:.2f}")
+    print(f"Final Validation MSE: {val_mse:.2f}")
 
     # Confusion matrix
     binned_confusion_matrix(model, val_loader, device)
