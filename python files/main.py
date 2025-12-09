@@ -16,7 +16,8 @@ def main():
     df, train_images_path = load_data()
     #print_images(df, train_images_path)
     map_labels(df)
-    transform = resize()
+    transform = resizeCNN()
+    #transform = resizeVit()
     device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
     if not model_pth.exists():
         model, optimizer, criterion = load_pretrained_model(device, model_name)
@@ -26,7 +27,7 @@ def main():
         #umcomment one or the other for resnet/vit
         trained_model = load_trained_resnet_model(3, model_pth, model_name)
         #trained_model = load_trained_vit_model(3, model_pth, model_name)
-        print("Model loaded")
+        print(f"{model_name} Model loaded")
 
         #validation and training accuracies
         criterion = nn.CrossEntropyLoss()
