@@ -8,7 +8,7 @@ from print_metrics import *
 MODEL_DIR = Path(__file__).resolve().parent.parent / "trained_models"
 #filename = "resnet50_50e.pth"
 #filename = "vit.pth"
-filename = "vit_7e.pth"
+filename = "vit_10e.pth"
 model_pth = MODEL_DIR / filename
 #model_name = "resnet50"
 model_name = 'vit_tiny_patch16_224'
@@ -22,8 +22,8 @@ def main():
     device, train_loader, val_loader, train_df_split, val_df_split = split_data(transform, train_images_path, df)
     if not model_pth.exists():
         #model, optimizer, criterion = load_pretrained_cnn_model(device, model_name)
-        model, optimizer, criterion = load_pretrained_vit_model(device)
-        trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device, 7)
+        model, optimizer, criterion = load_pretrained_vit_model(device, "vit_tiny_patch16_224")
+        trained_model = train_loop(model, optimizer, criterion, train_loader, val_loader, device, 10)
         save_model(trained_model, model_pth)
     else:
         #umcomment one or the other for resnet/vit
