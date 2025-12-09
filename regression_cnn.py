@@ -243,6 +243,17 @@ def main():
         pred = model(img.unsqueeze(0).to(device)).item()
         print(f"True: {true_age.item()} | Predicted: {pred:.1f}")
 
+    # get predictions from own test images
+    test_folder = "own_test_photos"
+    print("\nOwn Test Photos Predictions")
+    for filename in os.listdir(test_folder):
+        if filename.lower().endswith((".jpg", ".jpeg", ".png")):
+            img_path = os.path.join(test_folder, filename)
+            img = Image.open(img_path).convert("RGB")
+            img = val_transform(img).unsqueeze(0).to(device)
+            pred_age = model(img).item()
+            print(f"{filename}: Predicted Age: {pred_age:.1f}")
+
 
 if __name__ == "__main__":
     main()
