@@ -59,12 +59,21 @@ class AgeDataset(Dataset):
 
 
     
-def resize():
+def resizeCNN():
     transform = transforms.Compose([
-        transforms.Resize((64, 64)),        # Resize to ViT input size
+        transforms.Resize((64, 64)),        # Resize to CNN input size
         transforms.ToTensor(),                # Convert PIL image to tensor
         transforms.Normalize([0.5,0.5,0.5],   # Normalize to [-1,1]
                             [0.5,0.5,0.5])
+    ])
+    return transform
+
+def resizeVit():
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),        # Resize to ViT input size
+        transforms.ToTensor(),                # Convert PIL image to tensor
+        transforms.Normalize(mean=[0.485,0.456,0.406],   # Normalize to [-1,1]
+                            std=[0.229,0.224,0.225])
     ])
     return transform
 

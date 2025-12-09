@@ -94,9 +94,9 @@ def evaluate(model, data_loader, criterion, device):
     avg_loss = total_loss / total_samples
     return accuracy, avg_loss
 
-def load_pretrained_model(device, model_name):
+def load_pretrained_cnn_model(device, model_name):
     # Load pretrained ResNet18
-    model = timm.create_model(model_name, pretrained=True) #'vit_tiny_patch16_224'
+    model = timm.create_model(model_name, pretrained=True)
 
     # Replace the final classification layer (3 classes)
     model.fc = nn.Linear(model.fc.in_features, 3)
@@ -104,6 +104,29 @@ def load_pretrained_model(device, model_name):
     # Move model to device
     model = model.to(device)
 
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
+
+    return model, optimizer, criterion
+
+def load_pretrained_vit_model(device, model_name):
+    # Load pretrained ViT
+    model = timm.create_model(model_name, pretrained=True)
+
+    # Replace the final classification layer (3 classes)
+    if hasattr(model, "head"):
+        model.head = nn.Linear(model.head.in_features, 3)
+    else:
+        raise RuntimeError("Model does not have a .head attribute. Cannot replace classifier.")
+    
+    #Freeze all layers except classifier head and last transformer block
+    for name, param in model.named_parameters():
+        if "head" not in name and "blocks.11" not in name:
+            param.requires_grad = False
+
+    # Move model to device
+    model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=1e-4)
