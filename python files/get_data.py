@@ -90,8 +90,8 @@ def split_data(transform, train_images_path, df):
     val_dataset = AgeDataset(val_df_split, train_images_path, transform=transform)
 
     # Create DataLoaders
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)#was 32
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)#was 32
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 
 
