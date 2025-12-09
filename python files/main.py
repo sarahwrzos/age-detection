@@ -6,10 +6,10 @@ from train_loops import *
 from print_metrics import *
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "trained_models"
-filename = "resnet50_50e.pth"
+filename = "resnet18_50e.pth"
 #filename = "vit.pth"
 model_pth = MODEL_DIR / filename
-model_name = "resnet50"
+model_name = "resnet18"
 #model_name = 'vit_tiny_patch16_224'
 
 def main():
