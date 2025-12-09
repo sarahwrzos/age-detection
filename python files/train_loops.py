@@ -119,6 +119,11 @@ def load_pretrained_vit_model(device, model_name):
         model.head = nn.Linear(model.head.in_features, 3)
     else:
         raise RuntimeError("Model does not have a .head attribute. Cannot replace classifier.")
+    
+    #Freeze all layers except classifier head and last transformer block
+    for name, param in model.named_parameters():
+        if "head" not in name and "blocks.11" not in name:
+            param.requires_grad = False
 
     # Move model to device
     model = model.to(device)
