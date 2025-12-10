@@ -208,7 +208,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using:", device)
 
-    model_path = "resnet_regression.pth"
+    model_path = "resnet_regression_2.pth"
 
     # Load or train
     if os.path.exists(model_path):
@@ -218,7 +218,7 @@ def main():
         print("Training new model")
         model = AgeResNet().to(device)
 
-        loss_fn = nn.SmoothL1Loss()
+        loss_fn = nn.MSELoss()
         optimizer = optim.Adam(model.parameters(), lr=1e-4)
         early_stopper = EarlyStopping(patience=5, min_delta=0.1)
 
