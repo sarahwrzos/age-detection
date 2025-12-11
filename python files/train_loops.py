@@ -98,15 +98,42 @@ def load_pretrained_cnn_model(device, model_name):
     # Load pretrained ResNet18
     model = timm.create_model(model_name, pretrained=True)
 
-    # Replace the final classification layer (3 classes)
-    model.fc = nn.Linear(model.fc.in_features, 3)
+    # Replace the final classification layer with dropout
+    model.fc = nn.Sequential(
+        nn.Dropout(p=0.3),  # dropout for regularization
+        nn.Linear(model.fc.in_features, 3)
+    )
+
+    for param in model.parameters():
+        param.requires_grad = False  # freeze everything
+
+    #unfreeze certain layers
+    for param in model.fc.parameters():
+        param.requires_grad = True
+
+    if hasattr(model, "layer4"):
+        for param in model.layer4.parameters():
+            param.requires_grad = True
+    else:
+        print("Warning: model has no layer4 block")
+
+    if hasattr(model, "layer3"):
+        for param in model.layer3.parameters():
+            param.requires_grad = True
+    else:
+        print("Warning: model has no layer3 block")
 
     # Move model to device
     model = model.to(device)
 
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=1e-4)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer = optim.AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        lr=3e-5,   # slightly higher LR for fine-tuning
+        weight_decay=1e-2
+    )
+
 
     return model, optimizer, criterion
 
