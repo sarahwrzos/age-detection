@@ -12,19 +12,26 @@ def save_model(model, name):
     print(f"Saved model to: {save_path}")
 
 def load_trained_resnet_model(num_classes, model_path, model_name, device="cpu"):
-    # model_name MUST be the architecture string (e.g. "resnet50")
+    # Create model (pretrained=False, because we load saved weights)
     model = timm.create_model(model_name, pretrained=False)
 
-    # Replace classifier
-    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    # Replace classifier with same structure as during training
+    in_features = model.fc.in_features
+    model.fc = nn.Sequential(
+        nn.Dropout(p=0.3),
+        nn.Linear(in_features, num_classes)
+    )
 
-    # model_path is the .pth file
+    # Load saved weights
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict)
 
+    # Move to device and set evaluation mode
     model.to(device)
     model.eval()
+
     return model
+
 
 def load_trained_vit_model(num_classes, model_path, model_name, device="cpu"):
     # Recreate model architecture

@@ -6,6 +6,9 @@ import torch.optim as optim
 #retrains all layers. nothing is explicitly frozen
 def train_loop(model, optimizer, criterion, train_loader, val_loader, device, epochs):
     num_epochs = epochs
+    best_val_acc = 0
+    patience = 5  # number of epochs to wait for improvement
+    counter = 0
 
     print("starting training loop")
     for epoch in range(num_epochs):
@@ -39,6 +42,18 @@ def train_loop(model, optimizer, criterion, train_loader, val_loader, device, ep
               f"Train Acc: {train_acc*100:.2f}% | "
               f"Val Loss: {val_loss:.4f} | "
               f"Val Acc: {val_acc*100:.2f}%")
+        
+        # Check for improvement
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            counter = 0
+            # Save best model
+            torch.save(model.state_dict(), "best_model.pth")
+        else:
+            counter += 1
+            if counter >= patience:
+                print(f"Early stopping at epoch {epoch+1}")
+                break
 
     return model
 
@@ -100,7 +115,7 @@ def load_pretrained_cnn_model(device, model_name):
 
     # Replace the final classification layer with dropout
     model.fc = nn.Sequential(
-        nn.Dropout(p=0.3),  # dropout for regularization
+        nn.Dropout(p=0.5),  # dropout for regularization
         nn.Linear(model.fc.in_features, 3)
     )
 
