@@ -115,7 +115,7 @@ def load_pretrained_cnn_model(device, model_name):
 
     # Replace the final classification layer with dropout
     model.fc = nn.Sequential(
-        nn.Dropout(p=0.5),  # dropout for regularization
+        nn.Dropout(p=0.001),  # dropout for regularization
         nn.Linear(model.fc.in_features, 3)
     )
 

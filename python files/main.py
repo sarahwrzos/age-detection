@@ -6,7 +6,7 @@ from train_loops import *
 from print_metrics import *
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "trained_models"
-filename = "resnet18_better.pth"
+filename = "resnet18_dropout.pth"
 #filename = "vit.pth"
 # filename = "vit_10e.pth"
 model_pth = MODEL_DIR / filename
